@@ -15,11 +15,6 @@ export function Navbar({ isAdmin, setIsAdmin }: NavbarProps) {
     <header className="sticky top-0 z-50 bg-rustic-cream bg-opacity-95 border-b border-rustic-lightBrown shadow-md">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img 
-            src="/logo-placeholder.png" 
-            alt="Café & Amigos Bistrô Bar" 
-            className="h-12 w-auto hidden md:block" 
-          />
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-rustic-brown">
               Café & Amigos
