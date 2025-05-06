@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -52,15 +53,14 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+				// Custom restaurant theme colors
+				rustic: {
+					brown: '#5D4037',
+					lightBrown: '#8D6E63', 
+					terracotta: '#BF360C',
+					cream: '#FFF8E1',
+					charcoal: '#212121',
+					olive: '#556B2F'
 				}
 			},
 			borderRadius: {
@@ -89,7 +89,10 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+			},
+			backgroundImage: {
+        'wood-pattern': "url('/wood-background.png')",
+      }
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
