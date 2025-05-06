@@ -2,6 +2,21 @@
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem, convertSupabaseMenuItem, prepareSupabaseMenuItem } from "@/types/menu";
 
+// Verificar se o bucket para imagens existe
+const createStorageBucketIfNotExists = async () => {
+  const { data: buckets } = await supabase.storage.listBuckets();
+  
+  if (!buckets?.find(bucket => bucket.name === 'menu_images')) {
+    await supabase.storage.createBucket('menu_images', {
+      public: true,
+      fileSizeLimit: 1024 * 1024 * 2 // 2MB
+    });
+  }
+};
+
+// Iniciar a verificação do bucket quando o serviço for carregado
+createStorageBucketIfNotExists();
+
 export const menuService = {
   // Fetch all menu items
   async getMenuItems(): Promise<MenuItem[]> {
