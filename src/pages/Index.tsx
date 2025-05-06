@@ -1,29 +1,74 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import CategoryTabs from "@/components/CategoryTabs";
 import { EditItemModal } from "@/components/EditItemModal";
-import { initialMenuItems } from "@/data/menuData";
 import { MenuItem } from "@/types/menu";
 import { toast } from "sonner";
+import { menuService } from "@/services/menuService";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAdmin(!!data.session);
+    };
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setIsAdmin(!!session);
+      }
+    );
+    
+    checkSession();
+    
+    // Load menu items
+    fetchMenuItems();
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
+  const fetchMenuItems = async () => {
+    try {
+      setLoading(true);
+      const items = await menuService.getMenuItems();
+      setMenuItems(items);
+    } catch (error) {
+      toast.error("Erro ao carregar o cardápio");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleEditItem = (item: MenuItem) => {
     setEditingItem(item);
   };
   
-  const handleSaveItem = (updatedItem: MenuItem) => {
-    setMenuItems(prev => 
-      prev.map(item => 
-        item.id === updatedItem.id ? updatedItem : item
-      )
-    );
-    toast.success("Item atualizado com sucesso!");
-    setEditingItem(null);
+  const handleSaveItem = async (updatedItem: MenuItem) => {
+    try {
+      await menuService.updateMenuItem(updatedItem);
+      setMenuItems(prev => 
+        prev.map(item => 
+          item.id === updatedItem.id ? updatedItem : item
+        )
+      );
+      toast.success("Item atualizado com sucesso!");
+      setEditingItem(null);
+    } catch (error) {
+      toast.error("Erro ao atualizar o item");
+      console.error(error);
+    }
   };
 
   return (
@@ -48,11 +93,15 @@ const Index = () => {
             </div>
           )}
           
-          <CategoryTabs 
-            items={menuItems} 
-            isAdmin={isAdmin} 
-            onEditItem={handleEditItem} 
-          />
+          {loading ? (
+            <div className="text-center py-8">Carregando cardápio...</div>
+          ) : (
+            <CategoryTabs 
+              items={menuItems} 
+              isAdmin={isAdmin} 
+              onEditItem={handleEditItem} 
+            />
+          )}
         </div>
       </main>
       

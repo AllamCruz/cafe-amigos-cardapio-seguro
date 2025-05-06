@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -13,26 +14,48 @@ interface AdminLoginModalProps {
 }
 
 export function AdminLoginModal({ isOpen, onClose, setIsAdmin, isAdmin }: AdminLoginModalProps) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // This is a simple mock authentication
-    // In a real app, you should use a secure authentication system
-    if (username === "admin" && password === "admin123") {
-      setIsAdmin(true);
+    
+    if (!email || !password) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw error;
+      
       toast.success("Login realizado com sucesso!");
+      setIsAdmin(true);
       onClose();
-    } else {
-      toast.error("Usuário ou senha incorretos!");
+    } catch (error: any) {
+      console.error("Error logging in:", error);
+      toast.error(error.message || "Erro ao fazer login");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsAdmin(false);
-    toast.success("Logout realizado com sucesso!");
-    onClose();
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setIsAdmin(false);
+      toast.success("Logout realizado com sucesso!");
+      onClose();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao fazer logout");
+    }
   };
 
   return (
@@ -62,14 +85,15 @@ export function AdminLoginModal({ isOpen, onClose, setIsAdmin, isAdmin }: AdminL
         ) : (
           <form onSubmit={handleLogin} className="space-y-4 py-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium text-rustic-charcoal">
-                Usuário
+              <label htmlFor="email" className="text-sm font-medium text-rustic-charcoal">
+                Email
               </label>
               <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Digite seu usuário"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Digite seu email"
                 className="border-rustic-lightBrown focus-visible:ring-rustic-terracotta"
               />
             </div>
@@ -89,8 +113,9 @@ export function AdminLoginModal({ isOpen, onClose, setIsAdmin, isAdmin }: AdminL
             <Button 
               type="submit"
               className="w-full bg-rustic-brown hover:bg-rustic-terracotta"
+              disabled={loading}
             >
-              Entrar
+              {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
         )}
