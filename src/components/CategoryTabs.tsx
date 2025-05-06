@@ -2,6 +2,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MenuItem } from "@/types/menu";
 import MenuItemCard from "./MenuItemCard";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CategoryTabsProps {
   items: MenuItem[];
@@ -12,22 +14,25 @@ interface CategoryTabsProps {
 export default function CategoryTabs({ items, isAdmin, onEditItem }: CategoryTabsProps) {
   // Get unique categories
   const categories = [...new Set(items.map(item => item.category))];
+  const isMobile = useIsMobile();
 
   return (
     <Tabs defaultValue={categories[0]} className="w-full">
-      <div className="overflow-x-auto pb-2">
-        <TabsList className="bg-rustic-cream border border-rustic-lightBrown">
-          {categories.map((category) => (
-            <TabsTrigger 
-              key={category} 
-              value={category}
-              className="data-[state=active]:bg-rustic-brown data-[state=active]:text-rustic-cream"
-            >
-              {category}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </div>
+      <ScrollArea className="w-full border-b border-rustic-lightBrown pb-1">
+        <div className={`${isMobile ? "pb-2 w-max min-w-full" : "w-full"}`}>
+          <TabsList className="bg-rustic-cream border border-rustic-lightBrown h-12 w-full flex flex-nowrap">
+            {categories.map((category) => (
+              <TabsTrigger 
+                key={category} 
+                value={category}
+                className="data-[state=active]:bg-rustic-brown data-[state=active]:text-rustic-cream flex-1 whitespace-nowrap px-4"
+              >
+                {category}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+      </ScrollArea>
       
       {categories.map((category) => (
         <TabsContent key={category} value={category} className="mt-6">
