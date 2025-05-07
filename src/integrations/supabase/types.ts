@@ -16,6 +16,8 @@ export type Database = {
           description: string
           id: string
           image_url: string | null
+          is_popular: boolean | null
+          is_promotion: boolean | null
           name: string
           price: number
           updated_at: string
@@ -26,6 +28,8 @@ export type Database = {
           description: string
           id?: string
           image_url?: string | null
+          is_popular?: boolean | null
+          is_promotion?: boolean | null
           name: string
           price: number
           updated_at?: string
@@ -36,6 +40,8 @@ export type Database = {
           description?: string
           id?: string
           image_url?: string | null
+          is_popular?: boolean | null
+          is_promotion?: boolean | null
           name?: string
           price?: number
           updated_at?: string
