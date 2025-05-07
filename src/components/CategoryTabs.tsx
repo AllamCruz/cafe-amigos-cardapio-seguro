@@ -19,9 +19,9 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
 
   return (
     <Tabs defaultValue={categories[0]} className="w-full">
-      <ScrollArea className="w-full border-b border-rustic-lightBrown pb-1">
+      <ScrollArea className="w-full border-b border-rustic-lightBrown">
         <div className={`${isMobile ? "pb-2 w-max min-w-full" : "w-full"}`}>
-          <TabsList className="bg-rustic-cream border border-rustic-lightBrown h-12 w-full flex flex-nowrap">
+          <TabsList className="bg-rustic-cream border border-rustic-lightBrown h-12 w-full flex flex-nowrap overflow-x-auto">
             {categories.map((category) => (
               <TabsTrigger 
                 key={category} 

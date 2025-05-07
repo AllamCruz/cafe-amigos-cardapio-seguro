@@ -31,6 +31,21 @@ export const menuService = {
     
     return data.map(convertSupabaseMenuItem);
   },
+
+  // Get items by category
+  async getItemsByCategory(category: string): Promise<MenuItem[]> {
+    const { data, error } = await supabase
+      .from('menu_items')
+      .select('*')
+      .eq('category', category);
+    
+    if (error) {
+      console.error("Error fetching items by category:", error);
+      throw new Error(error.message);
+    }
+    
+    return data.map(convertSupabaseMenuItem);
+  },
   
   // Update menu item
   async updateMenuItem(item: MenuItem): Promise<MenuItem> {
