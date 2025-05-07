@@ -21,12 +21,20 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
     <Tabs defaultValue={categories[0]} className="w-full">
       <ScrollArea className="w-full border-b border-rustic-lightBrown">
         <div className={`${isMobile ? "pb-2 w-max min-w-full" : "w-full"}`}>
-          <TabsList className="bg-rustic-cream border border-rustic-lightBrown h-12 w-full flex flex-nowrap overflow-x-auto">
+          <TabsList className={`
+            bg-rustic-cream border border-rustic-lightBrown h-12 w-full 
+            ${isMobile ? "flex flex-nowrap overflow-x-auto" : ""}
+          `}>
             {categories.map((category) => (
               <TabsTrigger 
                 key={category} 
                 value={category}
-                className="data-[state=active]:bg-rustic-brown data-[state=active]:text-rustic-cream flex-1 whitespace-nowrap px-4"
+                className={`
+                  data-[state=active]:bg-rustic-brown 
+                  data-[state=active]:text-rustic-cream
+                  whitespace-nowrap px-4
+                  ${isMobile ? "flex-shrink-0" : "flex-1"}
+                `}
               >
                 {category}
               </TabsTrigger>

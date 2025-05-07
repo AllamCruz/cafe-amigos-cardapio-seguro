@@ -1,12 +1,12 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Plus, Edit, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { menuService } from "@/services/menuService";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AddCategoryForm } from "./category-manager/AddCategoryForm";
+import { CategoryList } from "./category-manager/CategoryList";
+import { DeleteCategoryDialog } from "./category-manager/DeleteCategoryDialog";
 
 interface CategoryManagerProps {
   isOpen: boolean;
@@ -15,11 +15,13 @@ interface CategoryManagerProps {
   onCategoriesUpdate: () => void;
 }
 
-export function CategoryManager({ isOpen, onClose, categories: initialCategories, onCategoriesUpdate }: CategoryManagerProps) {
+export function CategoryManager({ 
+  isOpen, 
+  onClose, 
+  categories: initialCategories, 
+  onCategoriesUpdate 
+}: CategoryManagerProps) {
   const [categoryList, setCategoryList] = useState<string[]>([]);
-  const [newCategory, setNewCategory] = useState("");
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editedCategory, setEditedCategory] = useState("");
   const [loading, setLoading] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<{index: number, name: string} | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -31,33 +33,22 @@ export function CategoryManager({ isOpen, onClose, categories: initialCategories
     }
   }, [isOpen, initialCategories]);
 
-  const handleAddCategory = () => {
-    if (!newCategory.trim()) {
+  const handleAddCategory = (newCategoryName: string) => {
+    if (!newCategoryName.trim()) {
       toast.error("Nome da categoria não pode estar vazio");
       return;
     }
     
-    if (categoryList.includes(newCategory.trim())) {
+    if (categoryList.includes(newCategoryName.trim())) {
       toast.error("Esta categoria já existe");
       return;
     }
     
-    setCategoryList([...categoryList, newCategory.trim()]);
-    setNewCategory("");
+    setCategoryList([...categoryList, newCategoryName.trim()]);
     toast.success("Categoria adicionada");
   };
 
-  const startEditing = (index: number) => {
-    setEditingIndex(index);
-    setEditedCategory(categoryList[index]);
-  };
-
-  const cancelEditing = () => {
-    setEditingIndex(null);
-    setEditedCategory("");
-  };
-
-  const saveEditing = async (index: number) => {
+  const handleEditCategory = async (index: number, editedCategory: string) => {
     if (!editedCategory.trim()) {
       toast.error("Nome da categoria não pode estar vazio");
       return;
@@ -78,8 +69,6 @@ export function CategoryManager({ isOpen, onClose, categories: initialCategories
       await menuService.updateCategory(oldCategory, editedCategory.trim());
       
       setCategoryList(updatedList);
-      setEditingIndex(null);
-      setEditedCategory("");
       toast.success("Categoria atualizada com sucesso");
     } catch (error) {
       toast.error("Erro ao atualizar categoria");
@@ -101,8 +90,7 @@ export function CategoryManager({ isOpen, onClose, categories: initialCategories
       setLoading(true);
       const categoryName = categoryList[categoryToDelete.index];
       
-      // In a real implementation, you need to decide how to handle items in this category
-      // For example, move them to another category or delete them
+      // Check if category has items before deleting
       const itemsInCategory = await menuService.getItemsByCategory(categoryName);
       
       if (itemsInCategory.length > 0) {
@@ -145,7 +133,6 @@ export function CategoryManager({ isOpen, onClose, categories: initialCategories
     try {
       setLoading(true);
       // In a real implementation, you would save the order of categories to the database
-      // For now, we'll just close the dialog and refresh the categories
       onCategoriesUpdate();
       onClose();
     } catch (error) {
@@ -170,100 +157,19 @@ export function CategoryManager({ isOpen, onClose, categories: initialCategories
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="flex gap-2">
-              <Input
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="Nova categoria"
-                className="border-rustic-lightBrown"
-              />
-              <Button
-                onClick={handleAddCategory}
-                className="bg-rustic-brown hover:bg-rustic-terracotta"
-                disabled={loading}
-              >
-                <Plus size={16} className="mr-2" /> Adicionar
-              </Button>
-            </div>
+            <AddCategoryForm 
+              onAdd={handleAddCategory} 
+              existingCategories={categoryList}
+              loading={loading}
+            />
             
-            <div className="border rounded-md border-rustic-lightBrown overflow-hidden">
-              <div className="bg-muted py-2 px-4 font-medium">
-                Categorias Existentes
-              </div>
-              <div className="divide-y">
-                {categoryList.map((category, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-white">
-                    {editingIndex === index ? (
-                      <div className="flex-1 flex gap-2">
-                        <Input
-                          value={editedCategory}
-                          onChange={(e) => setEditedCategory(e.target.value)}
-                          className="border-rustic-lightBrown"
-                        />
-                        <Button
-                          onClick={() => saveEditing(index)}
-                          className="bg-rustic-brown hover:bg-rustic-terracotta"
-                          disabled={loading}
-                        >
-                          Salvar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={cancelEditing}
-                          disabled={loading}
-                        >
-                          Cancelar
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <span className="flex-1">{category}</span>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveCategory(index, 'up')}
-                            disabled={index === 0 || loading}
-                          >
-                            <ChevronUp size={16} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveCategory(index, 'down')}
-                            disabled={index === categoryList.length - 1 || loading}
-                          >
-                            <ChevronDown size={16} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => startEditing(index)}
-                            disabled={loading}
-                          >
-                            <Edit size={16} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => confirmDelete(index)}
-                            className="text-destructive hover:bg-destructive/10"
-                            disabled={loading}
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-                {categoryList.length === 0 && (
-                  <div className="p-4 text-center text-muted-foreground">
-                    Nenhuma categoria encontrada
-                  </div>
-                )}
-              </div>
-            </div>
+            <CategoryList 
+              categories={categoryList}
+              loading={loading}
+              onEdit={handleEditCategory}
+              onMove={moveCategory}
+              onDelete={confirmDelete}
+            />
             
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={onClose} disabled={loading}>
@@ -281,23 +187,12 @@ export function CategoryManager({ isOpen, onClose, categories: initialCategories
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir a categoria "{categoryToDelete?.name}"?
-              Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setCategoryToDelete(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteCategory} className="bg-destructive text-destructive-foreground">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteCategoryDialog
+        isOpen={isDeleteDialogOpen}
+        categoryName={categoryToDelete?.name}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={deleteCategory}
+      />
     </>
   );
 }
