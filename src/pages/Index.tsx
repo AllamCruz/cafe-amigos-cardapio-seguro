@@ -4,18 +4,20 @@ import { Navbar } from "@/components/Navbar";
 import CategoryTabs from "@/components/CategoryTabs";
 import { EditItemModal } from "@/components/EditItemModal";
 import { AddItemModal } from "@/components/AddItemModal";
+import { CategoryManager } from "@/components/CategoryManager";
 import { MenuItem } from "@/types/menu";
 import { toast } from "sonner";
 import { menuService } from "@/services/menuService";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, LayoutList } from "lucide-react";
 
 const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -87,6 +89,21 @@ const Index = () => {
     }
   };
   
+  const handleDeleteItem = async (id: string) => {
+    try {
+      await menuService.deleteMenuItem(id);
+      setMenuItems(prev => prev.filter(item => item.id !== id));
+      toast.success("Item removido com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao remover o item");
+      console.error(error);
+    }
+  };
+  
+  const refreshCategories = () => {
+    fetchMenuItems();
+  };
+  
   // Get unique categories
   const categories = [...new Set(menuItems.map(item => item.category))];
 
@@ -105,18 +122,28 @@ const Index = () => {
           
           {isAdmin && (
             <div className="bg-rustic-olive bg-opacity-10 border border-rustic-olive rounded-md p-4 mb-6">
-              <div className="flex flex-col sm:flex-row justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <p className="text-sm text-rustic-charcoal mb-3 sm:mb-0">
                   <span className="font-bold">Modo Administrador:</span>{" "}
                   Clique no ícone de edição nos itens para modificar o cardápio.
                 </p>
-                <Button 
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="bg-rustic-brown hover:bg-rustic-terracotta text-white"
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Adicionar Novo Item
-                </Button>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  <Button 
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="bg-rustic-brown hover:bg-rustic-terracotta text-white"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Adicionar Novo Item
+                  </Button>
+                  <Button 
+                    onClick={() => setIsCategoryManagerOpen(true)}
+                    variant="outline"
+                    className="border-rustic-brown text-rustic-brown hover:bg-rustic-brown hover:text-white"
+                  >
+                    <LayoutList className="mr-2 h-4 w-4" />
+                    Gerenciar Categorias
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -127,7 +154,8 @@ const Index = () => {
             <CategoryTabs 
               items={menuItems} 
               isAdmin={isAdmin} 
-              onEditItem={handleEditItem} 
+              onEditItem={handleEditItem}
+              onDeleteItem={isAdmin ? handleDeleteItem : undefined} 
             />
           )}
         </div>
@@ -152,6 +180,13 @@ const Index = () => {
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleAddItem}
         categories={categories}
+      />
+      
+      <CategoryManager 
+        isOpen={isCategoryManagerOpen}
+        onClose={() => setIsCategoryManagerOpen(false)}
+        categories={categories}
+        onCategoriesUpdate={refreshCategories}
       />
     </div>
   );

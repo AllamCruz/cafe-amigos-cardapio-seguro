@@ -9,6 +9,8 @@ export interface MenuItem {
   price: number;
   category: string;
   imageUrl: string;
+  isPromotion?: boolean;
+  isPopular?: boolean;
 }
 
 // Type for working with Supabase menu items
@@ -21,7 +23,9 @@ export const convertSupabaseMenuItem = (item: SupabaseMenuItem): MenuItem => ({
   description: item.description,
   price: Number(item.price),
   category: item.category,
-  imageUrl: item.image_url || ''
+  imageUrl: item.image_url || '',
+  isPromotion: item.is_promotion || false,
+  isPopular: item.is_popular || false
 });
 
 // Function to convert our MenuItem to Supabase format for insertion/update
@@ -30,5 +34,7 @@ export const prepareSupabaseMenuItem = (item: MenuItem) => ({
   description: item.description,
   price: item.price,
   category: item.category,
-  image_url: item.imageUrl || null
+  image_url: item.imageUrl || null,
+  is_promotion: item.isPromotion || false,
+  is_popular: item.isPopular || false
 });

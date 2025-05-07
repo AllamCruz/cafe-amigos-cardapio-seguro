@@ -1,11 +1,12 @@
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MenuItem } from "@/types/menu";
 import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 
 interface EditItemModalProps {
   item: MenuItem | null;
@@ -36,6 +37,16 @@ export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalPr
     });
   };
 
+  const handleSwitchChange = (name: string) => (checked: boolean) => {
+    setEditedItem(prev => {
+      if (!prev) return null;
+      return { 
+        ...prev, 
+        [name]: checked
+      };
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editedItem) {
@@ -50,6 +61,9 @@ export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalPr
           <DialogTitle className="text-rustic-brown text-center text-2xl">
             Editar Item do Cardápio
           </DialogTitle>
+          <DialogDescription className="text-center text-rustic-charcoal">
+            Modifique os detalhes do item conforme necessário
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
@@ -115,6 +129,30 @@ export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalPr
               onChange={handleChange}
               className="border-rustic-lightBrown"
             />
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between space-x-2 border p-3 rounded-md border-rustic-lightBrown">
+              <Label htmlFor="isPromotion" className="text-rustic-charcoal cursor-pointer">
+                Item em Promoção
+              </Label>
+              <Switch
+                id="isPromotion"
+                checked={editedItem.isPromotion || false}
+                onCheckedChange={handleSwitchChange('isPromotion')}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between space-x-2 border p-3 rounded-md border-rustic-lightBrown">
+              <Label htmlFor="isPopular" className="text-rustic-charcoal cursor-pointer">
+                Item Mais Pedido
+              </Label>
+              <Switch
+                id="isPopular"
+                checked={editedItem.isPopular || false}
+                onCheckedChange={handleSwitchChange('isPopular')}
+              />
+            </div>
           </div>
           
           <div className="flex justify-end gap-2 pt-4">

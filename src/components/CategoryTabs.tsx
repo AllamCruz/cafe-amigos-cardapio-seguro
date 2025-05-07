@@ -9,9 +9,10 @@ interface CategoryTabsProps {
   items: MenuItem[];
   isAdmin: boolean;
   onEditItem: (item: MenuItem) => void;
+  onDeleteItem?: (id: string) => void;
 }
 
-export default function CategoryTabs({ items, isAdmin, onEditItem }: CategoryTabsProps) {
+export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem }: CategoryTabsProps) {
   // Get unique categories
   const categories = [...new Set(items.map(item => item.category))];
   const isMobile = useIsMobile();
@@ -45,6 +46,7 @@ export default function CategoryTabs({ items, isAdmin, onEditItem }: CategoryTab
                   item={item} 
                   isAdmin={isAdmin}
                   onEdit={() => onEditItem(item)}
+                  onDelete={onDeleteItem ? () => onDeleteItem(item.id) : undefined}
                 />
               ))}
           </div>

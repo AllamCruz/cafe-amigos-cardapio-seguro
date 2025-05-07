@@ -76,5 +76,33 @@ export const menuService = {
       console.error("Error deleting menu item:", error);
       throw new Error(error.message);
     }
+  },
+  
+  // Get all categories
+  async getCategories(): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('menu_items')
+      .select('category');
+    
+    if (error) {
+      console.error("Error fetching categories:", error);
+      throw new Error(error.message);
+    }
+    
+    // Extract unique categories
+    return [...new Set(data.map(item => item.category))];
+  },
+  
+  // Update category for multiple items
+  async updateCategory(oldCategory: string, newCategory: string): Promise<void> {
+    const { error } = await supabase
+      .from('menu_items')
+      .update({ category: newCategory })
+      .eq('category', oldCategory);
+    
+    if (error) {
+      console.error("Error updating category:", error);
+      throw new Error(error.message);
+    }
   }
-};
+}
