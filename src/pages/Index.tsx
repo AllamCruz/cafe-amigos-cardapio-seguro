@@ -6,19 +6,26 @@ import { EditItemModal } from "@/components/EditItemModal";
 import { AddItemModal } from "@/components/AddItemModal";
 import { CategoryManager } from "@/components/CategoryManager";
 import { MenuItem } from "@/types/menu";
-import { toast } from "sonner";
-import { menuService } from "@/services/menuService";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LayoutList } from "lucide-react";
+import { useMenu } from "@/hooks/use-menu";
 
 const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  
+  const { 
+    menuItems, 
+    loading, 
+    categories, 
+    refreshMenu, 
+    handleEditItem, 
+    handleAddItem, 
+    handleDeleteItem 
+  } = useMenu();
   
   useEffect(() => {
     // Check if user is already logged in
@@ -36,76 +43,28 @@ const Index = () => {
     
     checkSession();
     
-    // Load menu items
-    fetchMenuItems();
-    
     return () => {
       subscription.unsubscribe();
     };
   }, []);
   
-  const fetchMenuItems = async () => {
-    try {
-      setLoading(true);
-      const items = await menuService.getMenuItems();
-      setMenuItems(items);
-    } catch (error) {
-      toast.error("Erro ao carregar o cardápio");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleEditItem = (item: MenuItem) => {
+  const handleEditItemClick = (item: MenuItem) => {
     setEditingItem(item);
   };
   
   const handleSaveItem = async (updatedItem: MenuItem) => {
-    try {
-      await menuService.updateMenuItem(updatedItem);
-      setMenuItems(prev => 
-        prev.map(item => 
-          item.id === updatedItem.id ? updatedItem : item
-        )
-      );
-      toast.success("Item atualizado com sucesso!");
+    const success = await handleEditItem(updatedItem);
+    if (success) {
       setEditingItem(null);
-    } catch (error) {
-      toast.error("Erro ao atualizar o item");
-      console.error(error);
     }
   };
   
-  const handleAddItem = async (newItem: Omit<MenuItem, 'id'>) => {
-    try {
-      const addedItem = await menuService.addMenuItem(newItem);
-      setMenuItems(prev => [...prev, addedItem]);
-      toast.success("Item adicionado com sucesso!");
+  const handleAddItemSave = async (newItem: Omit<MenuItem, 'id'>) => {
+    const success = await handleAddItem(newItem);
+    if (success) {
       setIsAddModalOpen(false);
-    } catch (error) {
-      toast.error("Erro ao adicionar o item");
-      console.error(error);
     }
   };
-  
-  const handleDeleteItem = async (id: string) => {
-    try {
-      await menuService.deleteMenuItem(id);
-      setMenuItems(prev => prev.filter(item => item.id !== id));
-      toast.success("Item removido com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao remover o item");
-      console.error(error);
-    }
-  };
-  
-  const refreshCategories = () => {
-    fetchMenuItems();
-  };
-  
-  // Get unique categories
-  const categories = [...new Set(menuItems.map(item => item.category))];
 
   return (
     <div className="min-h-screen flex flex-col bg-secondary bg-[url('/wood-background.png')] bg-repeat">
@@ -154,7 +113,7 @@ const Index = () => {
             <CategoryTabs 
               items={menuItems} 
               isAdmin={isAdmin} 
-              onEditItem={handleEditItem}
+              onEditItem={handleEditItemClick}
               onDeleteItem={isAdmin ? handleDeleteItem : undefined} 
             />
           )}
@@ -178,7 +137,7 @@ const Index = () => {
       <AddItemModal 
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSave={handleAddItem}
+        onSave={handleAddItemSave}
         categories={categories}
       />
       
@@ -186,7 +145,7 @@ const Index = () => {
         isOpen={isCategoryManagerOpen}
         onClose={() => setIsCategoryManagerOpen(false)}
         categories={categories}
-        onCategoriesUpdate={refreshCategories}
+        onCategoriesUpdate={refreshMenu}
       />
     </div>
   );

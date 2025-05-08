@@ -41,9 +41,9 @@ export function CategoryListItem({
     setIsEditing(false);
   };
 
-  return (
-    <div className="flex items-center justify-between p-3 bg-white">
-      {isEditing ? (
+  if (isEditing) {
+    return (
+      <div className="flex items-center justify-between p-3 bg-white">
         <div className="flex-1 flex gap-2">
           <Input
             value={editedValue}
@@ -65,46 +65,48 @@ export function CategoryListItem({
             Cancelar
           </Button>
         </div>
-      ) : (
-        <>
-          <span className="flex-1">{category}</span>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onMoveCategory(index, 'up')}
-              disabled={index === 0 || loading}
-            >
-              <ChevronUp size={16} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onMoveCategory(index, 'down')}
-              disabled={index === totalItems - 1 || loading}
-            >
-              <ChevronDown size={16} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={startEditing}
-              disabled={loading}
-            >
-              <Edit size={16} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDeleteRequest(index)}
-              className="text-destructive hover:bg-destructive/10"
-              disabled={loading}
-            >
-              <Trash2 size={16} />
-            </Button>
-          </div>
-        </>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between p-3 bg-white">
+      <span className="flex-1">{category}</span>
+      <div className="flex gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onMoveCategory(index, 'up')}
+          disabled={index === 0 || loading}
+        >
+          <ChevronUp size={16} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onMoveCategory(index, 'down')}
+          disabled={index === totalItems - 1 || loading}
+        >
+          <ChevronDown size={16} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={startEditing}
+          disabled={loading}
+        >
+          <Edit size={16} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDeleteRequest(index)}
+          className="text-destructive hover:bg-destructive/10"
+          disabled={loading}
+        >
+          <Trash2 size={16} />
+        </Button>
+      </div>
     </div>
   );
 }

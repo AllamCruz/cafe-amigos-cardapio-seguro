@@ -3,19 +3,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
+import { useCategoryManager } from "./CategoryManagerContext";
 
-interface AddCategoryFormProps {
-  onAdd: (category: string) => void;
-  existingCategories: string[];
-  loading: boolean;
-}
-
-export function AddCategoryForm({ onAdd, existingCategories, loading }: AddCategoryFormProps) {
+export function AddCategoryForm() {
   const [newCategory, setNewCategory] = useState("");
+  const { handleAddCategory, loading, categoryList } = useCategoryManager();
 
-  const handleAddCategory = () => {
-    if (newCategory.trim() && !existingCategories.includes(newCategory.trim())) {
-      onAdd(newCategory.trim());
+  const onAddCategory = () => {
+    if (newCategory.trim() && !categoryList.includes(newCategory.trim())) {
+      handleAddCategory(newCategory.trim());
       setNewCategory("");
     }
   };
@@ -29,7 +25,7 @@ export function AddCategoryForm({ onAdd, existingCategories, loading }: AddCateg
         className="border-rustic-lightBrown"
       />
       <Button
-        onClick={handleAddCategory}
+        onClick={onAddCategory}
         className="bg-rustic-brown hover:bg-rustic-terracotta"
         disabled={loading}
       >

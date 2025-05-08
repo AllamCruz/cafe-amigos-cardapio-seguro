@@ -13,53 +13,71 @@ interface CategoryTabsProps {
 }
 
 export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem }: CategoryTabsProps) {
-  // Get unique categories
-  const categories = [...new Set(items.map(item => item.category))];
+  // Get unique categories and sort them alphabetically
+  const categories = [...new Set(items.map(item => item.category))].sort();
   const isMobile = useIsMobile();
+
+  if (categories.length === 0) {
+    return (
+      <div className="text-center py-8 text-rustic-charcoal">
+        Nenhuma categoria encontrada. {isAdmin && "Adicione itens ao cardápio para começar."}
+      </div>
+    );
+  }
 
   return (
     <Tabs defaultValue={categories[0]} className="w-full">
-      <ScrollArea className="w-full border-b border-rustic-lightBrown">
-        <div className={`${isMobile ? "pb-2 w-max min-w-full" : "w-full"}`}>
-          <TabsList className={`
-            bg-rustic-cream border border-rustic-lightBrown h-12 w-full 
-            ${isMobile ? "flex flex-nowrap overflow-x-auto" : ""}
-          `}>
-            {categories.map((category) => (
-              <TabsTrigger 
-                key={category} 
-                value={category}
-                className={`
-                  data-[state=active]:bg-rustic-brown 
-                  data-[state=active]:text-rustic-cream
-                  whitespace-nowrap px-4
-                  ${isMobile ? "flex-shrink-0" : "flex-1"}
-                `}
-              >
-                {category}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-      </ScrollArea>
-      
-      {categories.map((category) => (
-        <TabsContent key={category} value={category} className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items
-              .filter(item => item.category === category)
-              .map(item => (
-                <MenuItemCard 
-                  key={item.id} 
-                  item={item} 
-                  isAdmin={isAdmin}
-                  onEdit={() => onEditItem(item)}
-                  onDelete={onDeleteItem ? () => onDeleteItem(item.id) : undefined}
-                />
+      <div className="relative">
+        <ScrollArea className="w-full" orientation="horizontal">
+          <div className={`${isMobile ? "pb-2 w-max min-w-full" : "w-full"}`}>
+            <TabsList className={`
+              bg-rustic-cream border border-rustic-lightBrown h-12
+              ${isMobile ? "flex-nowrap w-max min-w-full" : "w-full"}
+            `}>
+              {categories.map((category) => (
+                <TabsTrigger 
+                  key={category} 
+                  value={category}
+                  className={`
+                    data-[state=active]:bg-rustic-brown 
+                    data-[state=active]:text-rustic-cream
+                    whitespace-nowrap px-4
+                    ${isMobile ? "flex-shrink-0" : ""}
+                  `}
+                >
+                  {category}
+                </TabsTrigger>
               ))}
+            </TabsList>
           </div>
-        </TabsContent>
-      ))}
+        </ScrollArea>
+      </div>
+      
+      {categories.map((category) => {
+        const categoryItems = items.filter(item => item.category === category);
+        
+        return (
+          <TabsContent key={category} value={category} className="mt-6">
+            {categoryItems.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                Nenhum item nesta categoria
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {categoryItems.map(item => (
+                  <MenuItemCard 
+                    key={item.id} 
+                    item={item} 
+                    isAdmin={isAdmin}
+                    onEdit={() => onEditItem(item)}
+                    onDelete={onDeleteItem ? () => onDeleteItem(item.id) : undefined}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        );
+      })}
     </Tabs>
   );
 }

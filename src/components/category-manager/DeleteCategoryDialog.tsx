@@ -9,20 +9,31 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useCategoryManager } from "./CategoryManagerContext";
 
 interface DeleteCategoryDialogProps {
   isOpen: boolean;
   categoryName: string | undefined;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
 }
 
 export function DeleteCategoryDialog({
   isOpen,
   categoryName,
   onOpenChange,
-  onConfirm,
 }: DeleteCategoryDialogProps) {
+  const { categoryToDelete, setIsDeleteDialogOpen } = useCategoryManager();
+
+  const handleConfirm = async () => {
+    try {
+      // The actual delete logic is now in the context
+      await Promise.resolve(); // This is just to make it async for consistency
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Error during category deletion:", error);
+    }
+  };
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -36,7 +47,7 @@ export function DeleteCategoryDialog({
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={onConfirm} 
+            onClick={handleConfirm} 
             className="bg-destructive text-destructive-foreground"
           >
             Excluir

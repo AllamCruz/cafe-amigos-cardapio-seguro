@@ -17,12 +17,13 @@ const createStorageBucketIfNotExists = async () => {
 // Iniciar a verificação do bucket quando o serviço for carregado
 createStorageBucketIfNotExists();
 
-export const menuService = {
+class MenuService {
   // Fetch all menu items
   async getMenuItems(): Promise<MenuItem[]> {
     const { data, error } = await supabase
       .from('menu_items')
-      .select('*');
+      .select('*')
+      .order('category');
     
     if (error) {
       console.error("Error fetching menu items:", error);
@@ -30,7 +31,7 @@ export const menuService = {
     }
     
     return data.map(convertSupabaseMenuItem);
-  },
+  }
 
   // Get items by category
   async getItemsByCategory(category: string): Promise<MenuItem[]> {
@@ -45,7 +46,7 @@ export const menuService = {
     }
     
     return data.map(convertSupabaseMenuItem);
-  },
+  }
   
   // Update menu item
   async updateMenuItem(item: MenuItem): Promise<MenuItem> {
@@ -62,7 +63,7 @@ export const menuService = {
     }
     
     return convertSupabaseMenuItem(data);
-  },
+  }
   
   // Add new menu item
   async addMenuItem(item: Omit<MenuItem, 'id'>): Promise<MenuItem> {
@@ -78,7 +79,7 @@ export const menuService = {
     }
     
     return convertSupabaseMenuItem(data);
-  },
+  }
   
   // Delete menu item
   async deleteMenuItem(id: string): Promise<void> {
@@ -91,7 +92,7 @@ export const menuService = {
       console.error("Error deleting menu item:", error);
       throw new Error(error.message);
     }
-  },
+  }
   
   // Get all categories
   async getCategories(): Promise<string[]> {
@@ -106,7 +107,7 @@ export const menuService = {
     
     // Extract unique categories
     return [...new Set(data.map(item => item.category))];
-  },
+  }
   
   // Update category for multiple items
   async updateCategory(oldCategory: string, newCategory: string): Promise<void> {
@@ -121,3 +122,5 @@ export const menuService = {
     }
   }
 }
+
+export const menuService = new MenuService();
