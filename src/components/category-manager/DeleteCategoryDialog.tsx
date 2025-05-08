@@ -24,6 +24,10 @@ export function DeleteCategoryDialog({
 }: DeleteCategoryDialogProps) {
   const { confirmDeleteCategory, loading } = useCategoryManager();
 
+  const handleConfirmDelete = () => {
+    confirmDeleteCategory();
+  };
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -37,7 +41,7 @@ export function DeleteCategoryDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={confirmDeleteCategory} 
+            onClick={handleConfirmDelete} 
             className="bg-destructive text-destructive-foreground"
             disabled={loading}
           >

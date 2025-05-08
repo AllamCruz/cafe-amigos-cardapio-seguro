@@ -37,7 +37,7 @@ export function CategoryManagerProvider({
 
   // Load categories when component mounts
   useEffect(() => {
-    setCategoryList(initialCategories);
+    setCategoryList([...initialCategories]);
   }, [initialCategories]);
 
   const handleAddCategory = (newCategoryName: string) => {
@@ -51,7 +51,7 @@ export function CategoryManagerProvider({
       return;
     }
     
-    setCategoryList([...categoryList, newCategoryName.trim()]);
+    setCategoryList(prev => [...prev, newCategoryName.trim()]);
     toast.success("Categoria adicionada");
   };
 
@@ -139,7 +139,7 @@ export function CategoryManagerProvider({
   const handleSave = async () => {
     try {
       setLoading(true);
-      // Save the changes to the database
+      // Save the changes to the database - for this we just trigger refresh
       onCategoriesUpdate();
       onClose();
       toast.success("Categorias salvas com sucesso");

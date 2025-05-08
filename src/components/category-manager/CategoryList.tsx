@@ -22,22 +22,23 @@ export function CategoryList({
         Categorias Existentes
       </div>
       <div className="divide-y">
-        {categories.map((category, index) => (
-          <CategoryListItem
-            key={index}
-            category={category}
-            index={index}
-            totalItems={categories.length}
-            loading={loading}
-            onEditSave={onEdit}
-            onMoveCategory={onMove}
-            onDeleteRequest={onDelete}
-          />
-        ))}
-        {categories.length === 0 && (
+        {categories.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             Nenhuma categoria encontrada
           </div>
+        ) : (
+          categories.map((category, index) => (
+            <CategoryListItem
+              key={index}
+              category={category}
+              index={index}
+              totalItems={categories.length}
+              loading={loading}
+              onEditSave={onEdit}
+              onMoveCategory={onMove}
+              onDeleteRequest={onDelete}
+            />
+          ))
         )}
       </div>
     </div>

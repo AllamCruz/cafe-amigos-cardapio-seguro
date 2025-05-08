@@ -11,7 +11,7 @@ export function AddCategoryForm() {
 
   const onAddCategory = () => {
     if (newCategory.trim()) {
-      handleAddCategory(newCategory.trim());
+      handleAddCategory(newCategory);
       setNewCategory("");
     } else {
       // Add visual feedback for empty input

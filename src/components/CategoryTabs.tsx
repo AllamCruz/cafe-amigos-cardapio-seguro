@@ -27,32 +27,30 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
 
   return (
     <Tabs defaultValue={categories[0]} className="w-full">
-      <div className="relative">
-        <ScrollArea className="w-full">
-          <div className={`${isMobile ? "pb-2 w-max min-w-full" : "w-full"}`}>
-            <TabsList className={`
-              bg-rustic-cream border border-rustic-lightBrown h-12
-              ${isMobile ? "flex-nowrap w-max min-w-full" : "w-full"}
-            `}>
-              {categories.map((category) => (
-                <TabsTrigger 
-                  key={category} 
-                  value={category}
-                  className={`
-                    data-[state=active]:bg-rustic-brown 
-                    data-[state=active]:text-rustic-cream
-                    whitespace-nowrap px-4
-                    ${isMobile ? "flex-shrink-0" : ""}
-                  `}
-                >
-                  {category}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </div>
+      <ScrollArea className="w-full">
+        <div className={isMobile ? "pb-2 w-max min-w-full" : "w-full"}>
+          <TabsList className={`
+            bg-rustic-cream border border-rustic-lightBrown h-12
+            ${isMobile ? "flex-nowrap w-max min-w-full" : "w-full"}
+          `}>
+            {categories.map((category) => (
+              <TabsTrigger 
+                key={category} 
+                value={category}
+                className={`
+                  data-[state=active]:bg-rustic-brown 
+                  data-[state=active]:text-rustic-cream
+                  whitespace-nowrap px-4
+                  ${isMobile ? "flex-shrink-0" : ""}
+                `}
+              >
+                {category}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+        <ScrollBar />
+      </ScrollArea>
       
       {categories.map((category) => {
         const categoryItems = items.filter(item => item.category === category);
