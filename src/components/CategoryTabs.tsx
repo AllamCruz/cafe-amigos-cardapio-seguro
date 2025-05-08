@@ -2,7 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MenuItem } from "@/types/menu";
 import MenuItemCard from "./MenuItemCard";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CategoryTabsProps {
@@ -50,6 +50,7 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
               ))}
             </TabsList>
           </div>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
       

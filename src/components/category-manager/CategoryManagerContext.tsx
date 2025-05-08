@@ -9,6 +9,7 @@ type CategoryManagerContextType = {
   handleAddCategory: (newCategoryName: string) => void;
   handleEditCategory: (index: number, editedCategory: string) => Promise<void>;
   handleDeleteCategory: (index: number) => void;
+  confirmDeleteCategory: () => Promise<void>;
   handleMoveCategory: (index: number, direction: 'up' | 'down') => void;
   handleSave: () => Promise<void>;
   categoryToDelete: {index: number, name: string} | null;
@@ -89,7 +90,7 @@ export function CategoryManagerProvider({
     setIsDeleteDialogOpen(true);
   };
 
-  const deleteCategory = async () => {
+  const confirmDeleteCategory = async () => {
     if (!categoryToDelete) return;
     
     try {
@@ -138,9 +139,10 @@ export function CategoryManagerProvider({
   const handleSave = async () => {
     try {
       setLoading(true);
-      // In a real implementation, you would save the order of categories to the database
+      // Save the changes to the database
       onCategoriesUpdate();
       onClose();
+      toast.success("Categorias salvas com sucesso");
     } catch (error) {
       toast.error("Erro ao salvar alterações");
       console.error(error);
@@ -155,6 +157,7 @@ export function CategoryManagerProvider({
     handleAddCategory,
     handleEditCategory,
     handleDeleteCategory,
+    confirmDeleteCategory,
     handleMoveCategory,
     handleSave,
     categoryToDelete,

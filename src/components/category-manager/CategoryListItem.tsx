@@ -25,10 +25,14 @@ export function CategoryListItem({
 }: CategoryListItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedValue, setEditedValue] = useState(category);
+  const [isSaving, setIsSaving] = useState(false);
 
   const startEditing = () => {
     setIsEditing(true);
     setEditedValue(category);
+    setTimeout(() => {
+      document.getElementById(`category-edit-${index}`)?.focus();
+    }, 50);
   };
 
   const cancelEditing = () => {
@@ -37,8 +41,24 @@ export function CategoryListItem({
   };
 
   const handleSave = async () => {
-    await onEditSave(index, editedValue);
-    setIsEditing(false);
+    if (!editedValue.trim()) return;
+    
+    try {
+      setIsSaving(true);
+      await onEditSave(index, editedValue);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === "Escape") {
+      cancelEditing();
+    }
   };
 
   if (isEditing) {
@@ -46,24 +66,29 @@ export function CategoryListItem({
       <div className="flex items-center justify-between p-3 bg-white">
         <div className="flex-1 flex gap-2">
           <Input
+            id={`category-edit-${index}`}
             value={editedValue}
             onChange={(e) => setEditedValue(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="border-rustic-lightBrown"
+            autoFocus
           />
-          <Button
-            onClick={handleSave}
-            className="bg-rustic-brown hover:bg-rustic-terracotta"
-            disabled={loading}
-          >
-            Salvar
-          </Button>
-          <Button
-            variant="outline"
-            onClick={cancelEditing}
-            disabled={loading}
-          >
-            Cancelar
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              onClick={handleSave}
+              className="bg-rustic-brown hover:bg-rustic-terracotta"
+              disabled={loading || isSaving || !editedValue.trim()}
+            >
+              Salvar
+            </Button>
+            <Button
+              variant="outline"
+              onClick={cancelEditing}
+              disabled={loading || isSaving}
+            >
+              Cancelar
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -78,6 +103,7 @@ export function CategoryListItem({
           size="icon"
           onClick={() => onMoveCategory(index, 'up')}
           disabled={index === 0 || loading}
+          title="Mover para cima"
         >
           <ChevronUp size={16} />
         </Button>
@@ -86,6 +112,7 @@ export function CategoryListItem({
           size="icon"
           onClick={() => onMoveCategory(index, 'down')}
           disabled={index === totalItems - 1 || loading}
+          title="Mover para baixo"
         >
           <ChevronDown size={16} />
         </Button>
@@ -94,6 +121,7 @@ export function CategoryListItem({
           size="icon"
           onClick={startEditing}
           disabled={loading}
+          title="Editar categoria"
         >
           <Edit size={16} />
         </Button>
@@ -103,6 +131,7 @@ export function CategoryListItem({
           onClick={() => onDeleteRequest(index)}
           className="text-destructive hover:bg-destructive/10"
           disabled={loading}
+          title="Remover categoria"
         >
           <Trash2 size={16} />
         </Button>

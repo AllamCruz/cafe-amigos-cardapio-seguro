@@ -39,10 +39,7 @@ function CategoryManagerContent() {
           onDelete={handleDeleteCategory}
         />
         
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" disabled={loading}>
-            Cancelar
-          </Button>
+        <div className="flex justify-end gap-2 pt-4">
           <Button 
             onClick={handleSave}
             className="bg-rustic-brown hover:bg-rustic-terracotta"
