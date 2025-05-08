@@ -28,7 +28,7 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
   return (
     <Tabs defaultValue={categories[0]} className="w-full">
       <div className="relative">
-        <ScrollArea className="w-full" orientation="horizontal">
+        <ScrollArea className="w-full">
           <div className={`${isMobile ? "pb-2 w-max min-w-full" : "w-full"}`}>
             <TabsList className={`
               bg-rustic-cream border border-rustic-lightBrown h-12
