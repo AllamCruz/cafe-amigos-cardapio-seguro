@@ -4,6 +4,7 @@ import { MenuItem } from "@/types/menu";
 import MenuItemCard from "./MenuItemCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect, useState } from "react";
 
 interface CategoryTabsProps {
   items: MenuItem[];
@@ -16,6 +17,17 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
   // Get unique categories and sort them alphabetically
   const categories = [...new Set(items.map(item => item.category))].sort();
   const isMobile = useIsMobile();
+  const [activeCategory, setActiveCategory] = useState<string>(categories[0] || "");
+
+  // Reset active category when categories change
+  useEffect(() => {
+    if (categories.length > 0) {
+      // If current active category is no longer in the list, reset to the first one
+      if (!categories.includes(activeCategory)) {
+        setActiveCategory(categories[0]);
+      }
+    }
+  }, [categories, activeCategory]);
 
   if (categories.length === 0) {
     return (
@@ -26,7 +38,7 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
   }
 
   return (
-    <Tabs defaultValue={categories[0]} className="w-full">
+    <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
       <ScrollArea className="w-full">
         <div className={isMobile ? "pb-2 w-max min-w-full" : "w-full"}>
           <TabsList className={`
@@ -49,7 +61,7 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
             ))}
           </TabsList>
         </div>
-        <ScrollBar />
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
       
       {categories.map((category) => {

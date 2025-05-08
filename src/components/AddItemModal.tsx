@@ -23,7 +23,7 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
     name: '',
     description: '',
     price: 0,
-    category: categories[0] || '',
+    category: '',
     imageUrl: ''
   });
   
@@ -31,12 +31,18 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Reset form state when the modal opens or categories change
   useEffect(() => {
-    if (isOpen && categories.length > 0) {
-      setNewItem(prev => ({
-        ...prev,
-        category: categories[0]
-      }));
+    if (isOpen) {
+      setNewItem({
+        name: '',
+        description: '',
+        price: 0,
+        category: categories[0] || '',
+        imageUrl: ''
+      });
+      setFile(null);
+      setUploadType('url');
     }
   }, [isOpen, categories]);
 
@@ -112,17 +118,6 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
       ...newItem,
       imageUrl: finalImageUrl
     });
-    
-    // Reset form state
-    setNewItem({
-      name: '',
-      description: '',
-      price: 0,
-      category: categories[0] || '',
-      imageUrl: ''
-    });
-    setFile(null);
-    setUploadType('url');
   };
 
   return (
@@ -185,11 +180,17 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
                   <SelectValue placeholder="Selecione a categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  {categories.length > 0 ? (
+                    categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="nenhuma" disabled>
+                      Nenhuma categoria disponível
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>

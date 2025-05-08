@@ -40,6 +40,7 @@ export function AddCategoryForm() {
         onKeyDown={handleKeyDown}
         placeholder="Nova categoria"
         className="border-rustic-lightBrown"
+        disabled={loading}
       />
       <Button
         onClick={onAddCategory}

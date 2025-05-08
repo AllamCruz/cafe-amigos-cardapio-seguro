@@ -31,12 +31,14 @@ export function CategoryManagerProvider({
   onCategoriesUpdate: () => void;
 }) {
   const [categoryList, setCategoryList] = useState<string[]>([]);
+  const [originalCategories, setOriginalCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<{index: number, name: string} | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Load categories when component mounts
   useEffect(() => {
+    setOriginalCategories([...initialCategories]);
     setCategoryList([...initialCategories]);
   }, [initialCategories]);
 
@@ -52,37 +54,25 @@ export function CategoryManagerProvider({
     }
     
     setCategoryList(prev => [...prev, newCategoryName.trim()]);
-    toast.success("Categoria adicionada");
+    toast.success("Categoria adicionada localmente. Clique em 'Salvar Alterações' para confirmar.");
   };
 
   const handleEditCategory = async (index: number, editedCategory: string) => {
     if (!editedCategory.trim()) {
       toast.error("Nome da categoria não pode estar vazio");
-      return;
+      return Promise.reject("Nome vazio");
     }
     
     if (categoryList.includes(editedCategory.trim()) && editedCategory.trim() !== categoryList[index]) {
       toast.error("Esta categoria já existe");
-      return;
+      return Promise.reject("Categoria duplicada");
     }
     
-    try {
-      setLoading(true);
-      const oldCategory = categoryList[index];
-      const updatedList = [...categoryList];
-      updatedList[index] = editedCategory.trim();
-      
-      // Update category in database
-      await menuService.updateCategory(oldCategory, editedCategory.trim());
-      
-      setCategoryList(updatedList);
-      toast.success("Categoria atualizada com sucesso");
-    } catch (error) {
-      toast.error("Erro ao atualizar categoria");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    const updatedList = [...categoryList];
+    updatedList[index] = editedCategory.trim();
+    setCategoryList(updatedList);
+    toast.success("Categoria atualizada localmente. Clique em 'Salvar Alterações' para confirmar.");
+    return Promise.resolve();
   };
 
   const handleDeleteCategory = (index: number) => {
@@ -91,7 +81,7 @@ export function CategoryManagerProvider({
   };
 
   const confirmDeleteCategory = async () => {
-    if (!categoryToDelete) return;
+    if (!categoryToDelete) return Promise.reject("Nenhuma categoria selecionada");
     
     try {
       setLoading(true);
@@ -104,7 +94,7 @@ export function CategoryManagerProvider({
         toast.error(`Esta categoria contém ${itemsInCategory.length} itens. Por favor, mova ou delete estes itens primeiro.`);
         setIsDeleteDialogOpen(false);
         setCategoryToDelete(null);
-        return;
+        return Promise.reject("Categoria contém itens");
       }
       
       const updatedList = categoryList.filter((_, i) => i !== categoryToDelete.index);
@@ -112,10 +102,12 @@ export function CategoryManagerProvider({
       
       setIsDeleteDialogOpen(false);
       setCategoryToDelete(null);
-      toast.success("Categoria removida");
+      toast.success("Categoria removida localmente. Clique em 'Salvar Alterações' para confirmar.");
+      return Promise.resolve();
     } catch (error) {
       toast.error("Erro ao remover categoria");
       console.error(error);
+      return Promise.reject(error);
     } finally {
       setLoading(false);
     }
@@ -139,10 +131,30 @@ export function CategoryManagerProvider({
   const handleSave = async () => {
     try {
       setLoading(true);
-      // Save the changes to the database - for this we just trigger refresh
+      
+      // Find categories to add and remove by comparing to original list
+      const categoriesToAdd = categoryList.filter(cat => !originalCategories.includes(cat));
+      const categoriesToRemove = originalCategories.filter(cat => !categoryList.includes(cat));
+      
+      console.log("Saving categories:", { categoryList, originalCategories, categoriesToAdd, categoriesToRemove });
+      
+      // Add new categories
+      for (const category of categoriesToAdd) {
+        await menuService.createCategory(category);
+      }
+      
+      // Remove deleted categories
+      for (const category of categoriesToRemove) {
+        await menuService.deleteCategory(category);
+      }
+      
+      // Update the order of categories if needed 
+      // (This would require more complex logic to preserve order in the database)
+      
+      // Update the application state
+      toast.success("Categorias salvas com sucesso");
       onCategoriesUpdate();
       onClose();
-      toast.success("Categorias salvas com sucesso");
     } catch (error) {
       toast.error("Erro ao salvar alterações");
       console.error(error);

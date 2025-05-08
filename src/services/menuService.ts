@@ -106,7 +106,7 @@ class MenuService {
     }
     
     // Extract unique categories
-    return [...new Set(data.map(item => item.category))];
+    return [...new Set(data.map(item => item.category))].sort();
   }
   
   // Update category for multiple items
@@ -119,6 +119,35 @@ class MenuService {
     if (error) {
       console.error("Error updating category:", error);
       throw new Error(error.message);
+    }
+  }
+  
+  // Create a new category (with a placeholder item if needed)
+  async createCategory(categoryName: string): Promise<void> {
+    // Check if category exists
+    const categories = await this.getCategories();
+    if (categories.includes(categoryName)) {
+      return; // Category already exists
+    }
+    
+    // Create a placeholder item if needed
+    const placeholderItem = {
+      name: `Novo Item em ${categoryName}`,
+      description: 'Descrição do item',
+      price: 0,
+      category: categoryName,
+      imageUrl: ''
+    };
+    
+    await this.addMenuItem(placeholderItem);
+  }
+  
+  // Delete a category by removing all items in that category
+  async deleteCategory(categoryName: string): Promise<void> {
+    const items = await this.getItemsByCategory(categoryName);
+    
+    for (const item of items) {
+      await this.deleteMenuItem(item.id);
     }
   }
 }

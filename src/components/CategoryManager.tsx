@@ -5,6 +5,7 @@ import { AddCategoryForm } from "./category-manager/AddCategoryForm";
 import { CategoryList } from "./category-manager/CategoryList";
 import { DeleteCategoryDialog } from "./category-manager/DeleteCategoryDialog";
 import { CategoryManagerProvider, useCategoryManager } from "./category-manager/CategoryManagerContext";
+import { useEffect, useState } from "react";
 
 interface CategoryManagerProps {
   isOpen: boolean;
@@ -60,6 +61,15 @@ function CategoryManagerContent() {
 }
 
 export function CategoryManager({ isOpen, onClose, categories, onCategoriesUpdate }: CategoryManagerProps) {
+  // Force a re-render of the provider when categories change or dialog opens
+  const [key, setKey] = useState(0);
+  
+  useEffect(() => {
+    if (isOpen) {
+      setKey(prev => prev + 1);
+    }
+  }, [isOpen, categories]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] bg-rustic-cream border border-rustic-lightBrown">
@@ -73,6 +83,7 @@ export function CategoryManager({ isOpen, onClose, categories, onCategoriesUpdat
         </DialogHeader>
         
         <CategoryManagerProvider 
+          key={key}
           initialCategories={categories} 
           onClose={onClose} 
           onCategoriesUpdate={onCategoriesUpdate}
