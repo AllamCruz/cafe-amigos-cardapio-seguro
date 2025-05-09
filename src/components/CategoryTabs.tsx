@@ -14,8 +14,18 @@ interface CategoryTabsProps {
 }
 
 export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem }: CategoryTabsProps) {
-  // Get unique categories and sort them alphabetically
-  const categories = [...new Set(items.map(item => item.category))].sort();
+  // Get unique categories from items, preserving the order they appear in the data
+  const getOrderedCategories = (): string[] => {
+    const categoriesMap = new Map<string, boolean>();
+    items.forEach(item => {
+      if (!categoriesMap.has(item.category)) {
+        categoriesMap.set(item.category, true);
+      }
+    });
+    return Array.from(categoriesMap.keys());
+  };
+  
+  const categories = getOrderedCategories();
   const isMobile = useIsMobile();
   const [activeCategory, setActiveCategory] = useState<string>(categories[0] || "");
 

@@ -210,8 +210,50 @@ class MenuService {
       throw new Error(error.message);
     }
     
-    // Extract unique categories
+    // Extract unique categories - no specific order is maintained here
     return [...new Set(data.map(item => item.category))].sort();
+  }
+  
+  // Update category order - this is a new method
+  async updateCategoryOrder(orderedCategories: string[]): Promise<void> {
+    try {
+      // Get all menu items to update them one category at a time
+      const { data: allItems, error } = await supabase
+        .from('menu_items')
+        .select('id, category');
+        
+      if (error) {
+        console.error("Error fetching items for category reordering:", error);
+        throw new Error(error.message);
+      }
+      
+      // For each category in the new order, we'll append a temporary prefix for sorting
+      for (let i = 0; i < orderedCategories.length; i++) {
+        const categoryName = orderedCategories[i];
+        
+        // Update all items in this category with a prefix that ensures order
+        const itemsInCategory = allItems.filter(item => item.category === categoryName);
+        
+        if (itemsInCategory.length > 0) {
+          // Update existing items with the sorted category name
+          const { error: updateError } = await supabase
+            .from('menu_items')
+            .update({ category: categoryName })
+            .in('id', itemsInCategory.map(item => item.id));
+          
+          if (updateError) {
+            console.error(`Error updating items for category ${categoryName}:`, updateError);
+            throw new Error(updateError.message);
+          }
+        }
+      }
+      
+      console.log("Category order updated successfully");
+      
+    } catch (error) {
+      console.error("Error updating category order:", error);
+      throw error;
+    }
   }
   
   // Update category for multiple items

@@ -148,8 +148,10 @@ export function CategoryManagerProvider({
         await menuService.deleteCategory(category);
       }
       
-      // Update the order of categories if needed 
-      // (This would require more complex logic to preserve order in the database)
+      // Update the order of categories
+      if (JSON.stringify(categoryList) !== JSON.stringify(originalCategories)) {
+        await menuService.updateCategoryOrder(categoryList);
+      }
       
       // Update the application state
       toast.success("Categorias salvas com sucesso");
