@@ -47,6 +47,8 @@ export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem 
     );
   }
 
+  console.log("CategoryTabs rendering with categories:", categories);
+
   return (
     <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
       <ScrollArea className="w-full">

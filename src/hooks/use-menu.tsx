@@ -15,8 +15,9 @@ export function useMenu() {
       const items = await menuService.getMenuItems();
       setMenuItems(items);
       
-      // Extract unique categories
-      setCategories([...new Set(items.map(item => item.category))]);
+      // Get categories in the correct order
+      const orderedCategories = await menuService.getCategories();
+      setCategories(orderedCategories);
     } catch (error) {
       toast.error("Erro ao carregar o cardápio");
       console.error(error);

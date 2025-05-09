@@ -38,6 +38,7 @@ export function CategoryManagerProvider({
 
   // Load categories when component mounts
   useEffect(() => {
+    console.log("Setting initial categories:", initialCategories);
     setOriginalCategories([...initialCategories]);
     setCategoryList([...initialCategories]);
   }, [initialCategories]);
@@ -125,6 +126,7 @@ export function CategoryManagerProvider({
     const updatedList = [...categoryList];
     [updatedList[index], updatedList[newIndex]] = [updatedList[newIndex], updatedList[index]];
     
+    console.log("Moving category, new order:", updatedList);
     setCategoryList(updatedList);
   };
 
@@ -136,7 +138,13 @@ export function CategoryManagerProvider({
       const categoriesToAdd = categoryList.filter(cat => !originalCategories.includes(cat));
       const categoriesToRemove = originalCategories.filter(cat => !categoryList.includes(cat));
       
-      console.log("Saving categories:", { categoryList, originalCategories, categoriesToAdd, categoriesToRemove });
+      console.log("Saving categories:", { 
+        categoryList, 
+        originalCategories, 
+        categoriesToAdd, 
+        categoriesToRemove,
+        orderChanged: JSON.stringify(categoryList) !== JSON.stringify(originalCategories)
+      });
       
       // Add new categories
       for (const category of categoriesToAdd) {
@@ -150,6 +158,7 @@ export function CategoryManagerProvider({
       
       // Update the order of categories
       if (JSON.stringify(categoryList) !== JSON.stringify(originalCategories)) {
+        console.log("Updating category order to:", categoryList);
         await menuService.updateCategoryOrder(categoryList);
       }
       

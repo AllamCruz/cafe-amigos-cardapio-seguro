@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem, MenuItemVariation, convertSupabaseMenuItem, prepareSupabaseMenuItem, prepareSupabaseVariation } from "@/types/menu";
 
@@ -199,52 +198,64 @@ class MenuService {
     }
   }
   
-  // Get all categories
+  // Get all categories with preserved order
   async getCategories(): Promise<string[]> {
+    // We need to get all menu items to extract the categories in their current order
     const { data, error } = await supabase
       .from('menu_items')
-      .select('category');
+      .select('category')
+      .order('category');
     
     if (error) {
       console.error("Error fetching categories:", error);
       throw new Error(error.message);
     }
     
-    // Extract unique categories - no specific order is maintained here
-    return [...new Set(data.map(item => item.category))].sort();
+    // Extract unique categories while preserving order
+    const categoriesSet = new Set<string>();
+    data.forEach(item => categoriesSet.add(item.category));
+    
+    return Array.from(categoriesSet);
   }
   
-  // Update category order - this is a new method
+  // Update category order
   async updateCategoryOrder(orderedCategories: string[]): Promise<void> {
     try {
-      // Get all menu items to update them one category at a time
-      const { data: allItems, error } = await supabase
-        .from('menu_items')
-        .select('id, category');
-        
-      if (error) {
-        console.error("Error fetching items for category reordering:", error);
-        throw new Error(error.message);
-      }
+      console.log("Updating category order to:", orderedCategories);
       
-      // For each category in the new order, we'll append a temporary prefix for sorting
+      // For each category in the new order, update all items in that category
+      // with their new position using a prefix that we'll remove later
       for (let i = 0; i < orderedCategories.length; i++) {
         const categoryName = orderedCategories[i];
+        const orderPrefix = `${i.toString().padStart(3, '0')}:`;
         
-        // Update all items in this category with a prefix that ensures order
-        const itemsInCategory = allItems.filter(item => item.category === categoryName);
+        console.log(`Updating ${categoryName} to position ${i} with prefix ${orderPrefix}`);
         
-        if (itemsInCategory.length > 0) {
-          // Update existing items with the sorted category name
-          const { error: updateError } = await supabase
-            .from('menu_items')
-            .update({ category: categoryName })
-            .in('id', itemsInCategory.map(item => item.id));
-          
-          if (updateError) {
-            console.error(`Error updating items for category ${categoryName}:`, updateError);
-            throw new Error(updateError.message);
-          }
+        // First update with a temporary prefix to ensure order
+        const { error: updateError } = await supabase
+          .from('menu_items')
+          .update({ category: `${orderPrefix}${categoryName}` })
+          .eq('category', categoryName);
+        
+        if (updateError) {
+          console.error(`Error updating category ${categoryName} with prefix:`, updateError);
+          throw new Error(updateError.message);
+        }
+      }
+      
+      // Now remove the prefixes
+      for (let i = 0; i < orderedCategories.length; i++) {
+        const categoryName = orderedCategories[i];
+        const orderPrefix = `${i.toString().padStart(3, '0')}:`;
+        
+        const { error: cleanupError } = await supabase
+          .from('menu_items')
+          .update({ category: categoryName })
+          .eq('category', `${orderPrefix}${categoryName}`);
+        
+        if (cleanupError) {
+          console.error(`Error removing prefix for ${categoryName}:`, cleanupError);
+          throw new Error(cleanupError.message);
         }
       }
       
