@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { MenuItem } from "@/types/menu";
-import { Edit, Trash2, Star, TrendingUp } from "lucide-react";
+import { Edit, Trash2, Star, TrendingUp, DollarSign } from "lucide-react";
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -11,7 +11,26 @@ interface MenuItemCardProps {
 }
 
 export default function MenuItemCard({ item, isAdmin, onEdit, onDelete }: MenuItemCardProps) {
-  const { name, description, price, imageUrl, isPromotion, isPopular } = item;
+  const { name, description, price, imageUrl, isPromotion, isPopular, variations } = item;
+  
+  const hasVariations = variations && variations.length > 0;
+  
+  // Get the minimum and maximum price if there are variations
+  const priceDisplay = () => {
+    if (!hasVariations) {
+      return `R$ ${price.toFixed(2).replace('.', ',')}`;
+    }
+    
+    const prices = variations.map(v => v.price);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    
+    if (minPrice === maxPrice) {
+      return `R$ ${minPrice.toFixed(2).replace('.', ',')}`;
+    }
+    
+    return `R$ ${minPrice.toFixed(2).replace('.', ',')} - ${maxPrice.toFixed(2).replace('.', ',')}`;
+  };
 
   return (
     <div className="rustic-card group relative transition-transform hover:scale-[1.01]">
@@ -44,7 +63,7 @@ export default function MenuItemCard({ item, isAdmin, onEdit, onDelete }: MenuIt
           </div>
         )}
         
-        {/* Badges for promotion and popular items */}
+        {/* Badges for promotion, popular items, and variations */}
         <div className="absolute left-2 top-2 flex flex-col gap-1">
           {isPromotion && (
             <div className="rounded bg-rustic-terracotta text-white px-2 py-1 text-xs font-medium flex items-center">
@@ -56,16 +75,37 @@ export default function MenuItemCard({ item, isAdmin, onEdit, onDelete }: MenuIt
               <TrendingUp size={12} className="mr-1" /> Mais Pedido
             </div>
           )}
+          {hasVariations && (
+            <div className="rounded bg-rustic-brown text-white px-2 py-1 text-xs font-medium flex items-center">
+              <DollarSign size={12} className="mr-1" /> {variations.length} opções
+            </div>
+          )}
         </div>
       </div>
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-bold text-rustic-charcoal">{name}</h3>
           <span className="font-semibold text-rustic-charcoal">
-            R$ {price.toFixed(2).replace('.', ',')}
+            {priceDisplay()}
           </span>
         </div>
         <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+        
+        {hasVariations && (
+          <div className="mt-2 pt-2 border-t border-dashed border-rustic-lightBrown">
+            <p className="text-xs text-muted-foreground mb-1">Opções disponíveis:</p>
+            <div className="flex flex-wrap gap-1">
+              {variations.map((v, idx) => (
+                <span 
+                  key={idx} 
+                  className="text-xs px-1.5 py-0.5 bg-rustic-cream border border-rustic-lightBrown rounded"
+                >
+                  {v.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

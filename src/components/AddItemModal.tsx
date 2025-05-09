@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
-import { Upload } from "lucide-react";
+import { Upload, Plus, Trash2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
-import { MenuItem } from "@/types/menu";
+import { MenuItem, MenuItemVariation } from "@/types/menu";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AddItemModalProps {
@@ -24,7 +24,8 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
     description: '',
     price: 0,
     category: '',
-    imageUrl: ''
+    imageUrl: '',
+    variations: []
   });
   
   const [uploadType, setUploadType] = useState<'url' | 'file'>('url');
@@ -39,7 +40,8 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
         description: '',
         price: 0,
         category: categories[0] || '',
-        imageUrl: ''
+        imageUrl: '',
+        variations: []
       });
       setFile(null);
       setUploadType('url');
@@ -62,6 +64,55 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
     }
+  };
+
+  const handleAddVariation = () => {
+    setNewItem(prev => ({
+      ...prev,
+      variations: [
+        ...(prev.variations || []),
+        { name: "", price: 0 }
+      ]
+    }));
+  };
+
+  const handleVariationChange = (index: number, field: keyof MenuItemVariation, value: string | number) => {
+    setNewItem(prev => {
+      if (!prev.variations) return prev;
+      
+      const updatedVariations = [...prev.variations];
+      
+      if (field === 'price') {
+        updatedVariations[index] = {
+          ...updatedVariations[index],
+          price: typeof value === 'number' ? value : parseFloat(value) || 0
+        };
+      } else {
+        updatedVariations[index] = {
+          ...updatedVariations[index],
+          [field]: value
+        };
+      }
+      
+      return {
+        ...prev,
+        variations: updatedVariations
+      };
+    });
+  };
+
+  const handleRemoveVariation = (index: number) => {
+    setNewItem(prev => {
+      if (!prev.variations) return prev;
+      
+      const updatedVariations = [...prev.variations];
+      updatedVariations.splice(index, 1);
+      
+      return {
+        ...prev,
+        variations: updatedVariations
+      };
+    });
   };
 
   const handleImageUpload = async (): Promise<string | null> => {
@@ -98,9 +149,21 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
     e.preventDefault();
     
     // Validate the form
-    if (!newItem.name || !newItem.description || newItem.price <= 0 || !newItem.category) {
+    if (!newItem.name || !newItem.description || newItem.price < 0 || !newItem.category) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
+    }
+    
+    // Validate variations if any
+    if (newItem.variations && newItem.variations.length > 0) {
+      const invalidVariations = newItem.variations.filter(
+        v => !v.name || v.price < 0
+      );
+      
+      if (invalidVariations.length > 0) {
+        toast.error("Todas as variações precisam ter nome e preço válido");
+        return;
+      }
     }
     
     let finalImageUrl = newItem.imageUrl;
@@ -120,9 +183,11 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
     });
   };
 
+  const hasVariations = newItem.variations && newItem.variations.length > 0;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] bg-rustic-cream border border-rustic-lightBrown">
+      <DialogContent className="sm:max-w-[500px] bg-rustic-cream border border-rustic-lightBrown max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-rustic-brown text-center text-2xl">
             Adicionar Novo Item ao Cardápio
@@ -156,7 +221,14 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price" className="text-rustic-charcoal">Preço (R$)*</Label>
+              <Label htmlFor="price" className="text-rustic-charcoal flex items-center">
+                Preço Base (R$)*
+                {hasVariations && (
+                  <span className="text-xs ml-2 text-muted-foreground">
+                    (Aparece quando não há variações selecionadas)
+                  </span>
+                )}
+              </Label>
               <Input
                 id="price"
                 name="price"
@@ -194,6 +266,69 @@ export function AddItemModal({ isOpen, onClose, onSave, categories }: AddItemMod
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          
+          {/* Variations Section */}
+          <div className="space-y-4 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-rustic-brown font-medium">Variações (Tamanhos/Opções)</Label>
+              <Button 
+                type="button" 
+                onClick={handleAddVariation}
+                variant="outline" 
+                className="text-rustic-brown border-rustic-lightBrown"
+              >
+                <Plus size={16} className="mr-1" /> Adicionar Variação
+              </Button>
+            </div>
+            
+            {newItem.variations && newItem.variations.length > 0 ? (
+              <div className="space-y-3">
+                {newItem.variations.map((variation, index) => (
+                  <div key={index} className="flex items-center gap-2 p-3 border rounded-md border-rustic-lightBrown bg-rustic-cream/50">
+                    <div className="flex-1">
+                      <Input 
+                        placeholder="Nome da variação (ex: Pequena)"
+                        value={variation.name}
+                        onChange={(e) => handleVariationChange(index, 'name', e.target.value)}
+                        className="border-rustic-lightBrown mb-2"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="w-[120px]">
+                      <div className="relative">
+                        <DollarSign size={16} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                        <Input 
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Preço"
+                          value={variation.price}
+                          onChange={(e) => handleVariationChange(index, 'price', e.target.value)}
+                          className="border-rustic-lightBrown pl-7"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-rustic-terracotta hover:text-red-600 hover:bg-red-50"
+                      onClick={() => handleRemoveVariation(index)}
+                    >
+                      <Trash2 size={18} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-4 border border-dashed rounded-md border-rustic-lightBrown text-muted-foreground">
+                Nenhuma variação adicionada. O item terá apenas o preço base.
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
