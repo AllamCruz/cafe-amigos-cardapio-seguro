@@ -14,7 +14,7 @@ interface CategoryTabsProps {
 }
 
 export default function CategoryTabs({ items, isAdmin, onEditItem, onDeleteItem }: CategoryTabsProps) {
-  // Get unique categories from items, preserving the order they appear in the data
+  // Use categories from the items array, respecting the order from the database
   const getOrderedCategories = (): string[] => {
     const categoriesMap = new Map<string, boolean>();
     items.forEach(item => {

@@ -20,7 +20,7 @@ export function useMenu() {
       setCategories(orderedCategories);
     } catch (error) {
       toast.error("Erro ao carregar o cardápio");
-      console.error(error);
+      console.error("Error fetching menu items:", error);
     } finally {
       setLoading(false);
     }
@@ -42,20 +42,28 @@ export function useMenu() {
       return true;
     } catch (error) {
       toast.error("Erro ao atualizar o item");
-      console.error(error);
+      console.error("Error updating menu item:", error);
       return false;
     }
   };
   
   const handleAddItem = async (newItem: Omit<MenuItem, 'id'>) => {
     try {
+      console.log("Adding new item:", newItem);
       const addedItem = await menuService.addMenuItem(newItem);
+      console.log("Added item response:", addedItem);
       setMenuItems(prev => [...prev, addedItem]);
       toast.success("Item adicionado com sucesso!");
+      
+      // Update categories if new category was added
+      if (!categories.includes(newItem.category)) {
+        setCategories(prev => [...prev, newItem.category]);
+      }
+      
       return true;
     } catch (error) {
       toast.error("Erro ao adicionar o item");
-      console.error(error);
+      console.error("Error adding menu item:", error);
       return false;
     }
   };
@@ -68,7 +76,21 @@ export function useMenu() {
       return true;
     } catch (error) {
       toast.error("Erro ao remover o item");
-      console.error(error);
+      console.error("Error deleting menu item:", error);
+      return false;
+    }
+  };
+
+  const updateCategoryOrder = async (orderedCategories: string[]) => {
+    try {
+      console.log("Updating category order to:", orderedCategories);
+      await menuService.updateCategoryOrder(orderedCategories);
+      setCategories(orderedCategories);
+      toast.success("Ordem das categorias atualizada com sucesso!");
+      return true;
+    } catch (error) {
+      toast.error("Erro ao atualizar a ordem das categorias");
+      console.error("Error updating category order:", error);
       return false;
     }
   };
@@ -80,6 +102,7 @@ export function useMenu() {
     refreshMenu: fetchMenuItems,
     handleEditItem,
     handleAddItem,
-    handleDeleteItem
+    handleDeleteItem,
+    updateCategoryOrder
   };
 }
